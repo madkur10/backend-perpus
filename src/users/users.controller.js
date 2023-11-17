@@ -11,8 +11,19 @@ const {
 } = require("./users.service");
 
 router.get("/", async (req, res) => {
-    const products = await getAllUsers();
-    res.send(products);
+    try {
+        const products = await getAllUsers();
+        res.send({
+            code: 200,
+            msg: "Operation completed successfully.",
+            data: products
+        });
+    } catch (error) {
+        res.status(400).send({
+            code: 400,
+            msg: error.message
+        });        
+    }
 });
 
 router.get(
@@ -28,9 +39,16 @@ router.get(
             const userId = parseInt(req.params.id);
             const user = await getUserById(userId);
 
-            res.send(user);
+            res.send({
+                code: 200,
+                msg: "Operation completed successfully.",
+                data: user
+            });
         } catch (error) {
-            res.status(400).send(error.message);
+            res.status(400).send({
+                code: 400,
+                msg: error.message
+            });
         }
     }
 );
@@ -82,11 +100,15 @@ router.post(
             const user = await createUser(newDataUser);
 
             res.send({
-                data: user,
+                code: 201,
                 msg: "Create User Success",
+                data: user,
             });
         } catch (error) {
-            res.status(400).send(error.message);
+            res.status(400).send({
+                code: 400,
+                msg: error.message
+            });
         }
     }
 );
@@ -110,9 +132,15 @@ router.patch(
             const sessionUserId = parseInt(req.body.session_user_id);
             await deleteUserById(userId, sessionUserId);
 
-            res.send("User deleted");
+            res.send({
+                code: 200,
+                msg: "The resource has been successfully deleted"
+            });
         } catch (error) {
-            res.status(400).send(error.message);
+            res.status(400).send({
+                code: 400,
+                msg: error.message
+            });
         }
     }
 );
@@ -121,7 +149,7 @@ router.put(
     "/:id",
     [
         param("id").isInt().withMessage("Id must be integer"),
-        body("mod_user_id").isInt(),
+        body("mod_user_id").notEmpty(),
         body("first_name").notEmpty(),
         body("last_name").notEmpty(),
         body("birthdate").isISO8601().toDate(),
@@ -157,29 +185,48 @@ router.put(
             const user = await editUserById(userId, userData);
 
             res.send({
+                code: 200,
+                msg: "The resource has been successfully updated.",
                 data: user,
-                msg: "Edit User Success",
             });
         } catch (error) {
-            res.status(400).send(error.message);
+            res.status(400).send({
+                code: 400,
+                msg: error.message
+            });
         }
     }
 );
 
 router.patch(
     "/:id",
-    param("id").isInt().withMessage("Id must be integer"),
-    body("mod_user_id").isInt(),
+    [
+        body("mod_user_id").notEmpty(),
+        param("id").isInt().withMessage("Id must be integer"),
+    ],
     async (req, res) => {
-        const userId = parseInt(req.params.id);
-        const userData = req.body;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(422).json({ errors: errors.array() });
+        }
 
-        const user = await editUserById(userId, userData);
-
-        res.send({
-            data: user,
-            msg: "Edit User Success",
-        });
+        try {
+            const userId = parseInt(req.params.id);
+            const userData = req.body;
+    
+            const user = await editUserById(userId, userData);
+    
+            res.send({
+                code: 200,
+                msg: "The resource has been successfully updated.",
+                data: user,
+            });
+        } catch (error) {
+            res.status(400).send({
+                code: 400,
+                msg: error.message
+            });
+        }
     }
 );
 

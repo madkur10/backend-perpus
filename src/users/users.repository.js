@@ -1,4 +1,4 @@
-const prisma = require("../db");
+const { prisma } = require("../db");
 
 const findUsers = async () => {
     const users = await prisma.users.findMany({
@@ -95,7 +95,7 @@ const deleteUser = async (id, inputUserId) => {
 const editUser = async (id, userData) => {
     let birthdate;
     if (userData.birthdate) {
-        birthdate = birthdate;
+        birthdate = new Date(userData.birthdate);
     }
     const user = await prisma.users.update({
         where: {
