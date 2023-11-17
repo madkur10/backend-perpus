@@ -10,6 +10,10 @@ const {
 const getAllUsers = async () => {
     const users = await findUsers();
 
+    if (users.length === 0) {
+        throw Error("Users not found");
+    }
+
     return users;
 };
 
